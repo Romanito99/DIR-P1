@@ -5,7 +5,7 @@ DIRSRC := src/
 CC := mpicc
 CR := mpirun
 
-all : dirs toroide 
+all : dirs toroide  hipercubo
 
 dirs:
 	mkdir -p $(DIROBJ) $(DIREXE) $(DIRSRC)
