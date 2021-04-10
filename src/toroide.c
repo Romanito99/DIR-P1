@@ -11,8 +11,8 @@
 #define MAX_TAM 1000
 #define MAX 1000
 
-void obtenerVecinos(int rank, int *norte, int *sur, int *este, int *oeste);
-double obtenerNumeroMenor(int rank, double bufferRank, int norte, int sur, int este, int oeste);
+void conocerVecinos(int rank, int *norte, int *sur, int *este, int *oeste);
+double minimo(int rank, double bufferRank, int norte, int sur, int este, int oeste);
 
 int main(int argc, char *argv[])
 {
@@ -82,14 +82,9 @@ int main(int argc, char *argv[])
 
     if (error == 0)
     {
-        //Recibo el dato que le corresponde a mi nodo enviado por el rank 0
         MPI_Recv(&bufferRank, 1, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
-        //Obtengo los vecinos
-        obtenerVecinos(rank, &norte, &sur, &este, &oeste);
-
-        //Funcion para obtener el número mínimo de la red
-        double numeroMinimo = obtenerNumeroMenor(rank, bufferRank, norte, sur, este, oeste);
+        conocerVecinos(rank, &norte, &sur, &este, &oeste);
+        double numeroMinimo = minimo(rank, bufferRank, norte, sur, este, oeste);
 
         //El rank0 imprime el número menor de la red
         if (rank == 0)
@@ -102,9 +97,8 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-
 // Método para saber cuales son los vecinos de la red toroide
-void obtenerVecinos(int rank, int *norte, int *sur, int *este, int *oeste)
+void conocerVecinos(int rank, int *norte, int *sur, int *este, int *oeste)
 {
     int fila = rank / L;
     int columna = rank % L;
@@ -149,7 +143,7 @@ void obtenerVecinos(int rank, int *norte, int *sur, int *este, int *oeste)
 }
 
 //Método para obtener el menor número
-double obtenerNumeroMenor(int rank, double bufferRank, int norte, int sur, int este, int oeste)
+double minimo(int rank, double bufferRank, int norte, int sur, int este, int oeste)
 {
     int i;
     double min;
@@ -163,12 +157,10 @@ double obtenerNumeroMenor(int rank, double bufferRank, int norte, int sur, int e
         { 
             min = bufferRank;
         }
-
         MPI_Isend(&min, 1, MPI_DOUBLE, sur, i, MPI_COMM_WORLD, &request); //envio mi numero al vecino sur
         MPI_Wait(&request, &status);
         MPI_Recv(&bufferRank, 1, MPI_DOUBLE, norte, i, MPI_COMM_WORLD, &status); //recibo el número de mi vecino norte
 
-        //obtengo el menor numero 
         if (bufferRank < min)
         {
             min = bufferRank;
